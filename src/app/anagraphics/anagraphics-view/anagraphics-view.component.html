@@ -57,9 +57,10 @@
                         [src]="'data:image/jpeg;base64,' + anagraphic.photo"
                         alt>
 
-                    <h3>
-                        {{ anagraphic.name }}
-                    </h3>
+                    <a [routerLink]="['/anagraphics', anagraphic.id]"
+                        class="text-decoration-none fs-3 fw-bold mx-2">
+                        {{anagraphic.name}}
+                    </a>
 
                     <div id="actions">
                     </div>

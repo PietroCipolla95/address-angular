@@ -7,5 +7,5 @@ import { routes } from './app.routes';
 import { tokenInterceptor } from './token.interceptor';
 
 export const appConfig: ApplicationConfig = {
-  providers: [provideRouter(routes), provideHttpClient(), HttpClientModule, provideHttpClient(withInterceptors([tokenInterceptor]))]
+  providers: [provideRouter(routes) /*, provideHttpClient() */, HttpClientModule, provideHttpClient(withInterceptors([tokenInterceptor]))]
 };

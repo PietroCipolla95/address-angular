@@ -8,30 +8,35 @@ export const tokenInterceptor: HttpInterceptorFn = (req, next) => {
   let http = inject(HttpClient)
   let route = inject(Router)
 
-  const token = localStorage.getItem('token')
+  const token: any = localStorage.getItem('token')
+
+
 
   if (token) {
 
-    let decodedToken = jwtDecode(token)
-
-    const isExpired = decodedToken && decodedToken.exp ? (decodedToken.exp < Date.now() / 1000) : false;
+    let decodedToken: any = jwtDecode(token)
+    const expiresIn = decodedToken.exp - Date.now() / 1000; // Convert expiresIn to seconds
+    const refreshThreshold = 300; // 5 minutes before expiration in seconds
 
     try {
 
-      if (isExpired) {
+      if (expiresIn < refreshThreshold) {
         console.log('token expired');
         http.post('http://127.0.0.1:8000/api/auth/refresh', token).subscribe((response: any) => {
-          console.log(response);
-          const newToken = response.access_token
-          localStorage.setItem('token', newToken)
-          let refreshReq = req.clone({
+          const newToken = response.access_token;
+
+          // Update the token in localStorage
+          localStorage.setItem('token', newToken);
+
+          // Clone the original request with the new token
+          const authReq = req.clone({
             setHeaders: {
               Authorization: `Bearer ${newToken}`
             }
           });
 
-          console.log('token refreshed');
-          return next(refreshReq);
+          // Retry the original request with the new token
+          return next(authReq);
         })
 
       } else {
@@ -41,9 +46,9 @@ export const tokenInterceptor: HttpInterceptorFn = (req, next) => {
 
     } catch (error) {
 
-      console.log('invalid token');
-      localStorage.removeItem('token')
-      route.navigate(['/login'])
+      console.error('Failed to refresh token:', error);
+      // Handle refresh failure (e.g., navigate to login page)
+      route.navigate(['/login']);
     }
 
   } else {
